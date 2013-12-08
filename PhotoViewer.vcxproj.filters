@@ -13,5 +13,27 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="ソース ファイル\Irrlicht-i18n">
+      <UniqueIdentifier>{76cabc44-865d-41ad-a4fb-cfc990332459}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ヘッダー ファイル\Irrlicht-i18n">
+      <UniqueIdentifier>{47a76a51-81ca-4ebd-8588-31855d3dfe4b}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="winmain.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="Irrlicht-i18n\CGUITTFont.cpp">
+      <Filter>ソース ファイル\Irrlicht-i18n</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Irrlicht-i18n\CGUITTFont.h">
+      <Filter>ヘッダー ファイル\Irrlicht-i18n</Filter>
+    </ClInclude>
+    <ClInclude Include="Irrlicht-i18n\irrUString.h">
+      <Filter>ヘッダー ファイル\Irrlicht-i18n</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
