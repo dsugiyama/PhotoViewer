@@ -41,9 +41,13 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
+    <IncludePath>C:\Users\Daisuke\Documents\Visual Studio 2013\Libraries\freetype-2.5.1\include;C:\Users\Daisuke\Documents\Visual Studio 2013\Libraries\irrlicht-1.8.1\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\Daisuke\Documents\Visual Studio 2013\Libraries\freetype-2.5.1\objs\win32\vc2010;C:\Users\Daisuke\Documents\Visual Studio 2013\Libraries\irrlicht-1.8.1\lib\Win32-visualstudio;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
+    <IncludePath>C:\Users\Daisuke\Documents\Visual Studio 2013\Libraries\freetype-2.5.1\include;C:\Users\Daisuke\Documents\Visual Studio 2013\Libraries\irrlicht-1.8.1\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\Daisuke\Documents\Visual Studio 2013\Libraries\freetype-2.5.1\objs\win32\vc2010;C:\Users\Daisuke\Documents\Visual Studio 2013\Libraries\irrlicht-1.8.1\lib\Win32-visualstudio;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -56,6 +60,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>Irrlicht.lib;freetype251.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -73,6 +78,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>Irrlicht.lib;freetype251.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
