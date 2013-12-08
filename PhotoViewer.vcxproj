@@ -82,10 +82,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Application.cpp" />
     <ClCompile Include="Irrlicht-i18n\CGUITTFont.cpp" />
     <ClCompile Include="winmain.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Application.h" />
     <ClInclude Include="Irrlicht-i18n\CGUITTFont.h" />
     <ClInclude Include="Irrlicht-i18n\irrUString.h" />
   </ItemGroup>
