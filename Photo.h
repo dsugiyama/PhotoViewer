@@ -9,7 +9,9 @@ class Photo {
 public:
 	Photo();
 	Photo(ITexture* data, const std::string& caption);
-	~Photo();
+
+	ITexture* getData();
+	std::string getCaption();
 
 private:
 	ITexture* data;
