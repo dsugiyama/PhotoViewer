@@ -5,17 +5,21 @@
 #include "Irrlicht-i18n\CGUITTFont.h"
 
 using namespace irr::core;
-using namespace irr::video;
 
 Application::Application()
 {
 	this->device = createDevice(EDT_DIRECT3D9, dimension2d<u32>(WindowWidth, WindowHeight));
-	this->largeFont = CGUITTFont::createTTFont(this->device, FontFile.c_str(), LargeFontSize);
-	this->regularFont = CGUITTFont::createTTFont(this->device, FontFile.c_str(), RegularFontSize);
-
 	this->device->setWindowCaption(WindowCaption.c_str());
 
 	this->LoadPhotos();
+
+	this->largeFont = CGUITTFont::createTTFont(this->device, FontFile.c_str(), LargeFontSize);
+	this->regularFont = CGUITTFont::createTTFont(this->device, FontFile.c_str(), RegularFontSize);
+
+	auto driver = this->device->getVideoDriver();
+	this->leftButtonImage = driver->getTexture(LeftButtonImageFile.c_str());
+	this->rightButtonImage = driver->getTexture(RightButtonImageFile.c_str());
+	this->closeButtonImage = driver->getTexture(LeftButtonImageFile.c_str());
 }
 
 Application::~Application()
@@ -30,8 +34,6 @@ void Application::Run()
 	while (device->run()) {
 		auto driver = device->getVideoDriver();
 		driver->beginScene();
-		this->largeFont->draw(L"Photo Viewer", rect<s32>(50, 50, WindowWidth - 50 - 1, 50 + 50 - 1),
-			SColor(255, 127, 127, 127));
 		driver->endScene();
 	}
 }
