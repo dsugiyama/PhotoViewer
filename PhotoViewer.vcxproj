@@ -41,12 +41,12 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>C:\Users\Daisuke\Documents\Visual Studio 2013\Libraries\freetype-2.5.1\include;C:\Users\Daisuke\Documents\Visual Studio 2013\Libraries\irrlicht-1.8.1\include;$(IncludePath)</IncludePath>
+    <IncludePath>C:\Users\Daisuke\Documents\Visual Studio 2013\Libraries\picojson;C:\Users\Daisuke\Documents\Visual Studio 2013\Libraries\freetype-2.5.1\include;C:\Users\Daisuke\Documents\Visual Studio 2013\Libraries\irrlicht-1.8.1\include;$(IncludePath)</IncludePath>
     <LibraryPath>C:\Users\Daisuke\Documents\Visual Studio 2013\Libraries\freetype-2.5.1\objs\win32\vc2010;C:\Users\Daisuke\Documents\Visual Studio 2013\Libraries\irrlicht-1.8.1\lib\Win32-visualstudio;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>C:\Users\Daisuke\Documents\Visual Studio 2013\Libraries\freetype-2.5.1\include;C:\Users\Daisuke\Documents\Visual Studio 2013\Libraries\irrlicht-1.8.1\include;$(IncludePath)</IncludePath>
+    <IncludePath>C:\Users\Daisuke\Documents\Visual Studio 2013\Libraries\picojson;C:\Users\Daisuke\Documents\Visual Studio 2013\Libraries\freetype-2.5.1\include;C:\Users\Daisuke\Documents\Visual Studio 2013\Libraries\irrlicht-1.8.1\include;$(IncludePath)</IncludePath>
     <LibraryPath>C:\Users\Daisuke\Documents\Visual Studio 2013\Libraries\freetype-2.5.1\objs\win32\vc2010;C:\Users\Daisuke\Documents\Visual Studio 2013\Libraries\irrlicht-1.8.1\lib\Win32-visualstudio;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -84,12 +84,14 @@
   <ItemGroup>
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="Irrlicht-i18n\CGUITTFont.cpp" />
+    <ClCompile Include="Photo.cpp" />
     <ClCompile Include="winmain.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Application.h" />
     <ClInclude Include="Irrlicht-i18n\CGUITTFont.h" />
     <ClInclude Include="Irrlicht-i18n\irrUString.h" />
+    <ClInclude Include="Photo.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

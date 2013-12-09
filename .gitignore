@@ -157,5 +157,6 @@ $RECYCLE.BIN/
 
 ## Custom settings
 
-# font files for debug
+# resource files for debug
 fonts/
+photos/
