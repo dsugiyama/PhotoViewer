@@ -6,29 +6,35 @@
 #include "Photo.h"
 
 using namespace irr;
+using namespace irr::core;
 using namespace irr::gui;
 using namespace irr::video;
 
-class Application {
+class Application : public IEventReceiver {
 public:
 	Application();
-	~Application();
+	virtual ~Application();
 
 	void Run();
+	virtual bool OnEvent(const SEvent& ev);
 
 private:
-	const int WindowWidth = 800;
-	const int WindowHeight = 600;
-	const std::wstring WindowCaption = L"Photo Viewer";
 	const std::string PhotosDirectory = "photos";
 	const std::string MetadataFile = PhotosDirectory + "\\metadata.json";
 	const std::string ResourcesDirectory = "resources";
 	const std::string FontFile = ResourcesDirectory + "\\mplus-2c-regular.ttf";
-	const int LargeFontSize = 36;
-	const int RegularFontSize = 14;
 	const std::string LeftButtonImageFile = ResourcesDirectory + "\\button_left.png";
 	const std::string RightButtonImageFile = ResourcesDirectory + "\\button_right.png";
 	const std::string CloseButtonImageFile = ResourcesDirectory + "\\button_close.png";
+
+	const int WindowWidth = 800;
+	const int WindowHeight = 480;
+	const int LargeFontSize = 36;
+	const int RegularFontSize = 14;
+	const int NumberOfThumbnails = 5;
+	const int MaxThumbnailSize = 130;
+	const int MinThumbnailMargin = 20;
+	const int MinThumbnailTop = 220;
 
 	IrrlichtDevice* device;
 	std::vector<Photo> photos;
@@ -38,6 +44,12 @@ private:
 	ITexture* rightButtonImage;
 	ITexture* closeButtonImage;
 
+	bool thumbnailPage = true;
+	bool displayChanged = true;
+	int thumbnailIndex = 0;
+
 	void LoadPhotos();
+	void ConfigureGUIElements();
+	rect<s32> GetThumbnailRect(int idx);
 };
 
