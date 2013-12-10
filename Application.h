@@ -27,14 +27,22 @@ private:
 	const std::string RightButtonImageFile = ResourcesDirectory + "\\button_right.png";
 	const std::string CloseButtonImageFile = ResourcesDirectory + "\\button_close.png";
 
-	const int WindowWidth = 800;
-	const int WindowHeight = 480;
-	const int LargeFontSize = 36;
-	const int RegularFontSize = 14;
+	const int WindowWidth = 900;
+	const int WindowHeight = 540;
 	const int NumberOfThumbnails = 5;
-	const int MaxThumbnailSize = 130;
+	const int MaxThumbnailSize = 144;
 	const int MinThumbnailMargin = 20;
-	const int MinThumbnailTop = 220;
+	const int MinThumbnailTop = 170;
+	const int ThumbnailArrowButtonDistance = 160;
+	const int ThumbnailArrowButtonBottomMargin = 40;
+	const int FullscreenButtonMargin = 10;
+	const int LargeFontSize = 40;
+	const int RegularFontSize = 14;
+	const int HeadingLeft = 40;
+	const int HeadingTop = 50;
+	const int HeadingWidth = 250;
+	const int HeadingHeight = 60;
+	const int TextColor = 0xFF7F7F7F;
 
 	IrrlichtDevice* device;
 	std::vector<Photo> photos;
@@ -44,12 +52,15 @@ private:
 	ITexture* rightButtonImage;
 	ITexture* closeButtonImage;
 
-	bool thumbnailPage = true;
+	bool fullscreen = false;
 	bool displayChanged = true;
 	int thumbnailIndex = 0;
+	int fullscreenIndex = 0;
 
 	void LoadPhotos();
 	void ConfigureGUIElements();
+	void DrawNonGUIElements();
 	rect<s32> GetThumbnailRect(int idx);
+	rect<s32> GetFullscreenRect();
 };
 

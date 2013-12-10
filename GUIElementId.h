@@ -1,6 +1,8 @@
 enum GUIElementId {
-	LeftButton,
-	RightButton,
+	ThumbnailLeftButton,
+	ThumbnailRightButton,
 	CloseButton,
+	FullscreenLeftButton,
+	FullscreenRightButton,
 	Thumbnail
 };
