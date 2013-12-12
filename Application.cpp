@@ -1,25 +1,28 @@
 #include <fstream>
-#include <new>
+#define NOMINMAX
+#include <Windows.h>
 #include <picojson.h>
 #include "Application.h"
-#include "GUIElementId.h"
+#include "GUIElementID.h"
 #include "Irrlicht-i18n\CGUITTFont.h"
+
+using namespace irr::core;
 
 Application::Application()
 {
 	this->device = createDevice(EDT_DIRECT3D9, dimension2d<u32>(WindowWidth, WindowHeight));
-	this->device->setWindowCaption(L"Photo Viewer");
+	this->device->setWindowCaption(WindowCaption.c_str());
 	this->device->setEventReceiver(this);
 
 	this->LoadPhotos();
-
-	this->largeFont = CGUITTFont::createTTFont(this->device, FontFile.c_str(), LargeFontSize);
-	this->regularFont = CGUITTFont::createTTFont(this->device, FontFile.c_str(), RegularFontSize);
 
 	auto driver = this->device->getVideoDriver();
 	this->leftButtonImage = driver->getTexture(LeftButtonImageFile.c_str());
 	this->rightButtonImage = driver->getTexture(RightButtonImageFile.c_str());
 	this->closeButtonImage = driver->getTexture(CloseButtonImageFile.c_str());
+
+	this->largeFont = CGUITTFont::createTTFont(this->device, FontFile.c_str(), LargeFontSize);
+	this->regularFont = CGUITTFont::createTTFont(this->device, FontFile.c_str(), RegularFontSize);
 }
 
 Application::~Application()
@@ -31,15 +34,11 @@ Application::~Application()
 
 void Application::Run()
 {
-	while (this->device->run()) {
-		if (this->displayChanged) {
-			this->ConfigureGUIElements();
-			this->displayChanged = false;
-		}
+	this->ShowThumbnailView();
 
+	while (this->device->run()) {
 		auto driver = device->getVideoDriver();
 		driver->beginScene();
-		this->DrawNonGUIElements();
 		device->getGUIEnvironment()->drawAll();
 		driver->endScene();
 	}
@@ -51,65 +50,82 @@ bool Application::OnEvent(const SEvent& ev)
 		return false;
 	}
 
-	auto id = ev.GUIEvent.Caller->getID();
+	auto caller = ev.GUIEvent.Caller;
 
 	switch (ev.GUIEvent.EventType) {
 	case EGET_BUTTON_CLICKED:
-		switch (id) {
-		case GUIElementId::ThumbnailLeftButton:
-			{
-				auto nextIdx = this->thumbnailIndex - NumberOfThumbnails;
-				if (nextIdx >= 0) {
-					this->thumbnailIndex = nextIdx;
-					this->displayChanged = true;
+		{
+			auto id = caller->getID();
+			switch (id) {
+			case GUIElementID::ThumbnailLeftButton:
+				{
+					auto nextIdx = std::max(this->thumbnailIndex - NumberOfThumbnails, 0);
+					if (nextIdx != this->thumbnailIndex) {
+						this->thumbnailIndex = nextIdx;
+						this->scrollBar->setPos(this->thumbnailIndex);
+						this->RemoveThumbnails();
+						this->SetThumbnails();
+					}
 				}
-			}
-			break;
+				break;
 
-		case GUIElementId::ThumbnailRightButton:
-			{
-				auto nextIdx = this->thumbnailIndex + NumberOfThumbnails;
-				if (nextIdx < this->photos.size()) {
-					this->thumbnailIndex = nextIdx;
-					this->displayChanged = true;
+			case GUIElementID::ThumbnailRightButton:
+				{
+					auto nextIdx = std::min(this->thumbnailIndex + NumberOfThumbnails, (int)this->photos.size() - NumberOfThumbnails);
+					if (nextIdx != this->thumbnailIndex) {
+						this->thumbnailIndex = nextIdx;
+						this->scrollBar->setPos(this->thumbnailIndex);
+						this->RemoveThumbnails();
+						this->SetThumbnails();
+					}
 				}
-			}
-			break;
+				break;
 
-		case GUIElementId::CloseButton:
-			this->fullscreen = false;
-			this->displayChanged = true;
-			break;
-
-		case GUIElementId::FullscreenLeftButton:
-			{
-				auto nextIdx = this->fullscreenIndex - 1;
-				if (nextIdx >= 0) {
-					this->fullscreenIndex = nextIdx;
-					this->thumbnailIndex = this->fullscreenIndex / NumberOfThumbnails * NumberOfThumbnails;
-					this->displayChanged = true;
+			case GUIElementID::FullscreenLeftButton:
+				{
+					auto nextIdx = std::max(this->fullscreenIndex - 1, 0);
+					if (nextIdx != this->fullscreenIndex) {
+						this->fullscreenIndex = nextIdx;
+						this->RemoveFullscreenImage();
+						this->SetFullscreenImage();
+						if (this->fullscreenIndex < this->thumbnailIndex) {
+							this->thumbnailIndex = this->fullscreenIndex;
+						}
+					}
 				}
-			}
-			break;
+				break;
 
-		case GUIElementId::FullscreenRightButton:
-			{
-				auto nextIdx = this->fullscreenIndex + 1;
-				if (nextIdx < this->photos.size()) {
-					this->fullscreenIndex = nextIdx;
-					this->thumbnailIndex = this->fullscreenIndex / NumberOfThumbnails * NumberOfThumbnails;
-					this->displayChanged = true;
+			case GUIElementID::FullscreenRightButton:
+				{
+					auto nextIdx = std::min(this->fullscreenIndex + 1, (int)this->photos.size() - 1);
+					if (nextIdx != this->fullscreenIndex) {
+						this->fullscreenIndex = nextIdx;
+						this->RemoveFullscreenImage();
+						this->SetFullscreenImage();
+						if (this->fullscreenIndex > this->thumbnailIndex + NumberOfThumbnails - 1) {
+							this->thumbnailIndex = this->fullscreenIndex - NumberOfThumbnails + 1;
+						}
+					}
 				}
-			}
-			break;
+				break;
 
-		default:
-			this->fullscreenIndex = this->thumbnailIndex + id - GUIElementId::Thumbnail;
-			this->fullscreen = true;
-			this->displayChanged = true;
-			break;
+			case GUIElementID::CloseButton:
+				this->ShowThumbnailView();
+				break;
+
+			default:
+				this->fullscreenIndex = this->thumbnailIndex + id - GUIElementID::Thumbnail;
+				this->ShowFullscreenView();
+				break;
+			}
 		}
-		break;
+		return true;
+
+	case EGET_SCROLL_BAR_CHANGED:
+		this->thumbnailIndex = ((IGUIScrollBar*)caller)->getPos();
+		this->RemoveThumbnails();
+		this->SetThumbnails();
+		return true;
 	}
 }
 
@@ -120,103 +136,129 @@ void Application::LoadPhotos()
 	ifstr >> value;
 
 	auto entries = value.get<picojson::array>();
-	this->photos.resize(entries.size());
 
 	for (auto i = 0; i < entries.size(); i++) {
 		auto entry = entries[i].get<picojson::object>();
-		auto filename = entry["filename"].get<std::string>();
-		auto caption = entry["caption"].get<std::string>();
 
+		auto filename = entry["filename"].get<std::string>();
 		auto path = PhotosDirectory + "\\" + filename;
 		auto data = this->device->getVideoDriver()->getTexture(path.c_str());
 
-		new(&this->photos[i]) Photo(data, caption);
+		auto caption = entry["caption"].get<std::string>();
+
+		this->photos.push_back(Photo(data, caption));
 	}
 }
 
-void Application::ConfigureGUIElements()
+void Application::ShowThumbnailView()
+{
+	auto env = this->device->getGUIEnvironment();
+	env->clear();
+
+	auto headingRect = rect<s32>(vector2d<s32>(HeadingLeft, HeadingTop), dimension2d<s32>(HeadingWidth, HeadingHeight));
+	auto headingText = env->addStaticText(Heading.c_str(), headingRect);
+	headingText->setOverrideFont(this->largeFont);
+	headingText->setOverrideColor(SColor(TextColor));
+
+	auto buttonSize = this->closeButtonImage->getSize();
+	auto arrowButtonTop = WindowHeight - buttonSize.Height - ThumbnailArrowButtonBottomMargin;
+	auto leftButtonPos = vector2d<s32>(WindowWidth / 2 - buttonSize.Width - (ThumbnailArrowButtonDistance / 2), arrowButtonTop);
+	auto rightButtonPos = vector2d<s32>(WindowWidth / 2 + (ThumbnailArrowButtonDistance / 2), arrowButtonTop);
+	auto leftButton = env->addButton(rect<s32>(leftButtonPos, buttonSize), nullptr, GUIElementID::ThumbnailLeftButton);
+	auto rightButton = env->addButton(rect<s32>(rightButtonPos, buttonSize), nullptr, GUIElementID::ThumbnailRightButton);
+	leftButton->setImage(this->leftButtonImage);
+	rightButton->setImage(this->rightButtonImage);
+
+	auto scrollBarRect = rect<s32>(vector2d<s32>(0, WindowHeight - ScrollBarHeight), dimension2d<s32>(WindowWidth, ScrollBarHeight));
+	this->scrollBar = env->addScrollBar(true, scrollBarRect);
+	this->scrollBar->setMin(0);
+	this->scrollBar->setMax(std::max((int)this->photos.size() - NumberOfThumbnails, 0));
+	this->scrollBar->setSmallStep(1);
+	this->scrollBar->setLargeStep(NumberOfThumbnails);
+	this->scrollBar->setPos(this->thumbnailIndex);
+
+	this->SetThumbnails();
+}
+
+void Application::ShowFullscreenView()
 {
 	auto env = this->device->getGUIEnvironment();
 	env->clear();
 
 	auto buttonSize = this->closeButtonImage->getSize();
+	auto closeButtonPos = vector2d<s32>(WindowWidth - buttonSize.Width - FullscreenButtonMargin, FullscreenButtonMargin);
+	auto closeButton = env->addButton(rect<s32>(closeButtonPos, buttonSize), nullptr, GUIElementID::CloseButton);
+	closeButton->setImage(this->closeButtonImage);
 
-	if (this->fullscreen) {
-		auto closeButtonPos = vector2d<s32>(WindowWidth - buttonSize.Width - FullscreenButtonMargin, FullscreenButtonMargin);
-		auto closeButton = env->addButton(rect<s32>(closeButtonPos, buttonSize), nullptr, GUIElementId::CloseButton);
-		closeButton->setImage(this->closeButtonImage);
+	auto arrowButtonTop = (WindowHeight - buttonSize.Height) / 2;
+	auto leftButtonPos = vector2d<s32>(FullscreenButtonMargin, arrowButtonTop);
+	auto rightButtonPos = vector2d<s32>(WindowWidth - buttonSize.Width - FullscreenButtonMargin, arrowButtonTop);
+	auto leftButton = env->addButton(rect<s32>(leftButtonPos, buttonSize), nullptr, GUIElementID::FullscreenLeftButton);
+	auto rightButton = env->addButton(rect<s32>(rightButtonPos, buttonSize), nullptr, GUIElementID::FullscreenRightButton);
+	leftButton->setImage(this->leftButtonImage);
+	rightButton->setImage(this->rightButtonImage);
 
-		auto arrowButtonTop = (WindowHeight - buttonSize.Height) / 2;
-		auto leftButtonPos = vector2d<s32>(FullscreenButtonMargin, arrowButtonTop);
-		auto rightButtonPos = vector2d<s32>(WindowWidth - buttonSize.Width - FullscreenButtonMargin, arrowButtonTop);
-		auto leftButton = env->addButton(rect<s32>(leftButtonPos, buttonSize), nullptr, GUIElementId::FullscreenLeftButton);
-		auto rightButton = env->addButton(rect<s32>(rightButtonPos, buttonSize), nullptr, GUIElementId::FullscreenRightButton);
-		leftButton->setImage(this->leftButtonImage);
-		rightButton->setImage(this->rightButtonImage);
-	} else {
-		auto num = std::min((int)this->photos.size() - this->thumbnailIndex, NumberOfThumbnails);
-		for (auto i = 0; i < num; i++) {
-			auto rect = this->GetThumbnailRect(i);
-			auto button = env->addButton(rect, nullptr, GUIElementId::Thumbnail + i);
-			button->setImage(this->photos[this->thumbnailIndex + i].getData());
-			button->setScaleImage(true);
-		}
+	this->SetFullscreenImage();
+}
 
-		auto arrowButtonTop = WindowHeight - buttonSize.Height - ThumbnailArrowButtonBottomMargin;
-		auto leftButtonPos = vector2d<s32>(WindowWidth / 2 - buttonSize.Width - (ThumbnailArrowButtonDistance / 2), arrowButtonTop);
-		auto rightButtonPos = vector2d<s32>(WindowWidth / 2 + (ThumbnailArrowButtonDistance / 2), arrowButtonTop);
-		auto leftButton = env->addButton(rect<s32>(leftButtonPos, buttonSize), nullptr, GUIElementId::ThumbnailLeftButton);
-		auto rightButton = env->addButton(rect<s32>(rightButtonPos, buttonSize), nullptr, GUIElementId::ThumbnailRightButton);
-		leftButton->setImage(this->leftButtonImage);
-		rightButton->setImage(this->rightButtonImage);
+void Application::SetThumbnails()
+{
+	auto num = std::min(NumberOfThumbnails, (int)this->photos.size() - this->thumbnailIndex);
+	for (auto i = 0; i < num; i++) {
+		auto env = this->device->getGUIEnvironment();
+		auto photo = this->photos[this->thumbnailIndex + i];
+
+		auto thumbnailSize = photo.GetOptimalSize(MaxThumbnailSize, MaxThumbnailSize);
+		auto thumbnailLeft = OuterMargin + (MaxThumbnailSize + MinThumbnailMargin) * i
+			+ (MaxThumbnailSize - thumbnailSize.Width) / 2;
+		auto thumbnailTop = MinThumbnailTop + (MaxThumbnailSize - thumbnailSize.Height) / 2;
+		auto thumbnailRect = rect<s32>(vector2d<s32>(thumbnailLeft, thumbnailTop), thumbnailSize);
+		this->thumbnailButtons[i] = env->addButton(thumbnailRect, nullptr, GUIElementID::Thumbnail + i);
+		this->thumbnailButtons[i]->setImage(photo.GetData());
+		this->thumbnailButtons[i]->setPressedImage(photo.GetData());
+		this->thumbnailButtons[i]->setScaleImage(true);
+
+		auto captionLeft = OuterMargin + (MaxThumbnailSize + MinThumbnailMargin) * i;
+		auto captionTop = MinThumbnailTop + MaxThumbnailSize;
+		auto captionRect = rect<s32>(vector2d<s32>(captionLeft, captionTop), dimension2d<s32>(MaxThumbnailSize, CaptionHeight));
+
+		wchar_t caption[20];
+		MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, photo.GetCaption().c_str(), -1, caption, 20);
+		
+		this->captionTexts[i] = env->addStaticText(caption, captionRect);
+		this->captionTexts[i]->setOverrideFont(this->regularFont);
+		this->captionTexts[i]->setOverrideColor(SColor(TextColor));
+		this->captionTexts[i]->setTextAlignment(EGUIA_CENTER, EGUIA_CENTER);
 	}
 }
 
-rect<s32> Application::GetThumbnailRect(int idx)
+void Application::SetFullscreenImage()
 {
-	auto photoSize = this->photos[this->thumbnailIndex + idx].getData()->getSize();
+	auto env = this->device->getGUIEnvironment();
+	auto photo = this->photos[this->fullscreenIndex];
 
-	auto thumbnailSize = photoSize.Width >= photoSize.Height ?
-		dimension2d<s32>(MaxThumbnailSize, photoSize.Height * MaxThumbnailSize / photoSize.Width) :
-		dimension2d<s32>(photoSize.Width * MaxThumbnailSize / photoSize.Height, MaxThumbnailSize);
-
-	const int OuterMargin = (WindowWidth - MaxThumbnailSize * NumberOfThumbnails
-		- MinThumbnailMargin * (NumberOfThumbnails - 1)) / 2;
-	auto thumbnailLeft = OuterMargin + (MaxThumbnailSize + MinThumbnailMargin) * idx
-		+ (MaxThumbnailSize - thumbnailSize.Width) / 2;
-	auto thumbnailTop = MinThumbnailTop + (MaxThumbnailSize - thumbnailSize.Height) / 2;
-
-	return rect<s32>(vector2d<s32>(thumbnailLeft, thumbnailTop), thumbnailSize);
-}
-
-void Application::DrawNonGUIElements()
-{
-	if (this->fullscreen) {
-		auto fullscreenRect = this->GetFullscreenRect();
-		auto photoData = this->photos[this->fullscreenIndex].getData();
-		auto sourceRect = rect<s32>(vector2d<s32>(0, 0), photoData->getSize());
-		this->device->getVideoDriver()->draw2DImage(photoData, fullscreenRect, sourceRect);
-	} else {
-		auto captionRect = rect<s32>(vector2d<s32>(HeadingLeft, HeadingTop), dimension2d<s32>(HeadingWidth, HeadingHeight));
-		this->largeFont->draw(L"Photos", captionRect, SColor(TextColor));
-	}
-}
-
-rect<s32> Application::GetFullscreenRect()
-{
 	auto buttonSize = this->closeButtonImage->getSize();
-	auto fullscreenWidth = WindowWidth - (buttonSize.Width + FullscreenButtonMargin * 2) * 2;
+	auto maxFullscreenWidth = WindowWidth - (buttonSize.Width + FullscreenButtonMargin * 2) * 2;
 
-	auto photoSize = this->photos[this->fullscreenIndex].getData()->getSize();
-	auto widthRatio = (float)photoSize.Width / fullscreenWidth;
-	auto heightRatio = (float)photoSize.Height / WindowHeight;
+	auto fullscreenSize = photo.GetOptimalSize(maxFullscreenWidth, WindowHeight);
+	auto fullscreenLeft = (WindowWidth - fullscreenSize.Width) / 2;
+	auto fullscreenTop = (WindowHeight - fullscreenSize.Height) / 2;
+	auto fullscreenRect = rect<s32>(vector2d<s32>(fullscreenLeft, fullscreenTop), fullscreenSize);
+	this->fullscreenImage = env->addImage(fullscreenRect);
+	this->fullscreenImage->setImage(this->photos[this->fullscreenIndex].GetData());
+	this->fullscreenImage->setScaleImage(true);
+}
 
-	auto fullscreenSize = widthRatio >= heightRatio ?
-		dimension2d<s32>(fullscreenWidth, photoSize.Height * fullscreenWidth / photoSize.Width) :
-		dimension2d<s32>(photoSize.Width * WindowHeight / photoSize.Height, WindowHeight);
+void Application::RemoveThumbnails()
+{
+	auto num = std::min(NumberOfThumbnails, (int)this->photos.size() - this->thumbnailIndex);
+	for (auto i = 0; i < num; i++) {
+		this->thumbnailButtons[i]->remove();
+		this->captionTexts[i]->remove();
+	}
+}
 
-	auto fullScreenLeft = (WindowWidth - fullscreenSize.Width) / 2;
-	auto fullScreenTop = (WindowHeight - fullscreenSize.Height) / 2;
-
-	return rect<s32>(vector2d<s32>(fullScreenLeft, fullScreenTop), fullscreenSize);
+void Application::RemoveFullscreenImage()
+{
+	this->fullscreenImage->remove();
 }

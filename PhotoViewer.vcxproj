@@ -89,7 +89,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Application.h" />
-    <ClInclude Include="GUIElementId.h" />
+    <ClInclude Include="GUIElementID.h" />
     <ClInclude Include="Irrlicht-i18n\CGUITTFont.h" />
     <ClInclude Include="Irrlicht-i18n\irrUString.h" />
     <ClInclude Include="Photo.h" />

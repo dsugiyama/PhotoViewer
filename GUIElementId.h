@@ -1,8 +1,10 @@
-enum GUIElementId {
+#pragma once
+
+enum GUIElementID {
 	ThumbnailLeftButton,
 	ThumbnailRightButton,
-	CloseButton,
 	FullscreenLeftButton,
 	FullscreenRightButton,
+	CloseButton,
 	Thumbnail
 };

@@ -47,7 +47,7 @@
     <ClInclude Include="Photo.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="GUIElementId.h">
+    <ClInclude Include="GUIElementID.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>
