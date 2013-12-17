@@ -75,4 +75,3 @@ private:
 	void RemoveThumbnails();
 	void RemoveFullscreenImage();
 };
-
